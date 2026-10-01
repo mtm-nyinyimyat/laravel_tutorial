@@ -12,8 +12,9 @@
         </div>
         <a
             href="{{ route('items.create') }}"
-            class="rounded-md bg-[#1b1b18] px-4 py-2 text-sm font-medium text-white transition hover:bg-black dark:bg-[#EDEDEC] dark:text-[#1C1C1A] dark:hover:bg-white"
+            class="inline-flex items-center gap-1.5 rounded-md bg-[#1b1b18] px-4 py-2 text-sm font-medium text-white transition hover:bg-black dark:bg-[#EDEDEC] dark:text-[#1C1C1A] dark:hover:bg-white"
         >
+            <x-icons.plus />
             New item
         </a>
     </div>
@@ -39,18 +40,27 @@
                         <td class="px-4 py-3">${{ number_format($item->price, 2) }}</td>
                         <td class="px-4 py-3">{{ $item->order_items_count }}</td>
                         <td class="px-4 py-3 text-right">
-                            <div class="flex items-center justify-end gap-3">
-                                <a href="{{ route('items.show', $item) }}" class="text-[#706f6c] underline-offset-4 hover:underline dark:text-[#A1A09A]">
+                            <div class="flex items-center justify-end gap-2">
+                                <a
+                                    href="{{ route('items.show', $item) }}"
+                                    class="inline-flex items-center gap-1.5 rounded-md border border-[#e3e3e0] px-3 py-1.5 text-sm transition hover:border-[#1b1b18] dark:border-[#3E3E3A] dark:hover:border-[#EDEDEC]"
+                                >
+                                    <x-icons.eye />
                                     View
                                 </a>
-                                <a href="{{ route('items.edit', $item) }}" class="text-[#706f6c] underline-offset-4 hover:underline dark:text-[#A1A09A]">
+                                <a
+                                    href="{{ route('items.edit', $item) }}"
+                                    class="inline-flex items-center gap-1.5 rounded-md border border-[#e3e3e0] px-3 py-1.5 text-sm transition hover:border-[#1b1b18] dark:border-[#3E3E3A] dark:hover:border-[#EDEDEC]"
+                                >
+                                    <x-icons.pencil />
                                     Edit
                                 </a>
                                 <x-confirm-delete :action="route('items.destroy', $item)" message="Are you sure you want to delete this item?">
                                     <button
                                         type="submit"
-                                        class="text-[#f53003] underline-offset-4 hover:underline dark:text-[#FF4433]"
+                                        class="inline-flex items-center gap-1.5 rounded-md border border-red-200 px-3 py-1.5 text-sm text-[#f53003] transition hover:border-[#f53003] dark:border-red-900 dark:text-[#FF4433]"
                                     >
+                                        <x-icons.trash />
                                         Delete
                                     </button>
                                 </x-confirm-delete>

@@ -26,21 +26,23 @@
                     <a
                         href="{{ route('orders.index') }}"
                         @class([
-                            'rounded-md px-3 py-2 text-sm font-medium transition',
+                            'inline-flex items-center gap-2 rounded-md px-3 py-2 text-sm font-medium transition',
                             'bg-[#1b1b18] text-white dark:bg-[#EDEDEC] dark:text-[#1C1C1A]' => request()->routeIs('orders.*'),
                             'text-[#706f6c] hover:bg-[#f5f5f0] hover:text-[#1b1b18] dark:text-[#A1A09A] dark:hover:bg-[#1D1D1B] dark:hover:text-[#EDEDEC]' => ! request()->routeIs('orders.*'),
                         ])
                     >
+                        <x-icons.orders />
                         Orders
                     </a>
                     <a
                         href="{{ route('items.index') }}"
                         @class([
-                            'rounded-md px-3 py-2 text-sm font-medium transition',
+                            'inline-flex items-center gap-2 rounded-md px-3 py-2 text-sm font-medium transition',
                             'bg-[#1b1b18] text-white dark:bg-[#EDEDEC] dark:text-[#1C1C1A]' => request()->routeIs('items.*'),
                             'text-[#706f6c] hover:bg-[#f5f5f0] hover:text-[#1b1b18] dark:text-[#A1A09A] dark:hover:bg-[#1D1D1B] dark:hover:text-[#EDEDEC]' => ! request()->routeIs('items.*'),
                         ])
                     >
+                        <x-icons.items />
                         Items
                     </a>
                 </nav>
@@ -50,8 +52,9 @@
                         @csrf
                         <button
                             type="submit"
-                            class="w-full rounded-md border border-[#e3e3e0] px-3 py-1.5 text-sm transition hover:border-[#1b1b18] dark:border-[#3E3E3A] dark:hover:border-[#EDEDEC]"
+                            class="inline-flex w-full items-center justify-center gap-1.5 rounded-md border border-[#e3e3e0] px-3 py-1.5 text-sm transition hover:border-[#1b1b18] dark:border-[#3E3E3A] dark:hover:border-[#EDEDEC]"
                         >
+                            <x-icons.logout />
                             Log out
                         </button>
                     </form>

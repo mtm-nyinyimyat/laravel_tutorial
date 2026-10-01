@@ -23,7 +23,7 @@ test('authenticated users can create an item', function () {
     $item = Item::query()->where('name', 'Notebook')->first();
 
     expect($item)->not->toBeNull();
-    $response->assertRedirect(route('items.show', $item));
+    $response->assertRedirect(route('items.index'));
     $this->assertDatabaseHas('items', [
         'name' => 'Notebook',
         'price' => 9.99,
@@ -61,6 +61,6 @@ test('items used in orders cannot be deleted', function () {
 
     $response = $this->actingAs($user)->delete(route('items.destroy', $item));
 
-    $response->assertRedirect(route('items.show', $item));
+    $response->assertRedirect(route('items.index'));
     $this->assertDatabaseHas('items', ['id' => $item->id]);
 });

@@ -1,4 +1,10 @@
-<x-layouts.app :title="'Profile — '.config('app.name')">
+<x-layouts.app
+    :title="'Profile — '.config('app.name')"
+    :breadcrumbs="[
+        ['label' => 'Dashboard', 'url' => route('dashboard')],
+        ['label' => 'Profile'],
+    ]"
+>
     <div class="mb-6">
         <h1 class="text-2xl font-semibold tracking-tight">Profile</h1>
         <p class="mt-1 text-sm text-[#706f6c] dark:text-[#A1A09A]">Manage your account information and password.</p>

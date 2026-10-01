@@ -1,4 +1,10 @@
-<x-layouts.app :title="'Orders — '.config('app.name')">
+<x-layouts.app
+    :title="'Orders — '.config('app.name')"
+    :breadcrumbs="[
+        ['label' => 'Dashboard', 'url' => route('dashboard')],
+        ['label' => 'Orders'],
+    ]"
+>
     <div class="mb-6 flex items-center justify-between gap-4">
         <div>
             <h1 class="text-2xl font-semibold tracking-tight">Orders</h1>
@@ -35,9 +41,22 @@
                         <td class="px-4 py-3">{{ $order->order_items_count }}</td>
                         <td class="px-4 py-3">${{ number_format($order->total, 2) }}</td>
                         <td class="px-4 py-3 text-right">
-                            <a href="{{ route('orders.edit', $order) }}" class="text-[#706f6c] underline-offset-4 hover:underline dark:text-[#A1A09A]">
-                                Edit
-                            </a>
+                            <div class="flex items-center justify-end gap-3">
+                                <a href="{{ route('orders.show', $order) }}" class="text-[#706f6c] underline-offset-4 hover:underline dark:text-[#A1A09A]">
+                                    View
+                                </a>
+                                <a href="{{ route('orders.edit', $order) }}" class="text-[#706f6c] underline-offset-4 hover:underline dark:text-[#A1A09A]">
+                                    Edit
+                                </a>
+                                <x-confirm-delete :action="route('orders.destroy', $order)" message="Are you sure you want to delete this order?">
+                                    <button
+                                        type="submit"
+                                        class="text-[#f53003] underline-offset-4 hover:underline dark:text-[#FF4433]"
+                                    >
+                                        Delete
+                                    </button>
+                                </x-confirm-delete>
+                            </div>
                         </td>
                     </tr>
                 @empty

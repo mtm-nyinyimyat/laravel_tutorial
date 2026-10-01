@@ -1,4 +1,9 @@
-<x-layouts.app :title="'Dashboard — '.config('app.name')">
+<x-layouts.app
+    :title="'Dashboard — '.config('app.name')"
+    :breadcrumbs="[
+        ['label' => 'Dashboard'],
+    ]"
+>
     <h1 class="text-2xl font-semibold tracking-tight">Dashboard</h1>
     <p class="mt-2 text-[#706f6c] dark:text-[#A1A09A]">
         Welcome back, {{ $user->name }}. Use the sidebar to manage Orders and Items.

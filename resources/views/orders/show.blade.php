@@ -1,4 +1,11 @@
-<x-layouts.app :title="'Order #'.$order->id.' — '.config('app.name')">
+<x-layouts.app
+    :title="'Order #'.$order->id.' — '.config('app.name')"
+    :breadcrumbs="[
+        ['label' => 'Dashboard', 'url' => route('dashboard')],
+        ['label' => 'Orders', 'url' => route('orders.index')],
+        ['label' => 'Order #'.$order->id],
+    ]"
+>
     <div class="mb-6 flex items-start justify-between gap-4">
         <div>
             <h1 class="text-2xl font-semibold tracking-tight">Order #{{ $order->id }}</h1>
@@ -14,16 +21,14 @@
             >
                 Edit
             </a>
-            <form method="POST" action="{{ route('orders.destroy', $order) }}" onsubmit="return confirm('Delete this order?')">
-                @csrf
-                @method('DELETE')
+            <x-confirm-delete :action="route('orders.destroy', $order)" message="Are you sure you want to delete this order?">
                 <button
                     type="submit"
                     class="rounded-md border border-red-200 px-3 py-1.5 text-sm text-[#f53003] transition hover:border-[#f53003] dark:border-red-900 dark:text-[#FF4433]"
                 >
                     Delete
                 </button>
-            </form>
+            </x-confirm-delete>
         </div>
     </div>
 

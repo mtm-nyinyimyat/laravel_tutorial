@@ -41,7 +41,7 @@ class ItemController extends Controller
         $item = Item::create($request->validated());
 
         return redirect()
-            ->route('items.show', $item)
+            ->route('items.index')
             ->with('status', 'Item created successfully.');
     }
 
@@ -86,7 +86,7 @@ class ItemController extends Controller
     {
         if ($item->orderItems()->exists()) {
             return redirect()
-                ->route('items.show', $item)
+                ->route('items.index')
                 ->with('error', 'This item is used in orders and cannot be deleted.');
         }
 

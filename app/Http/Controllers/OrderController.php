@@ -61,7 +61,7 @@ class OrderController extends Controller
         });
 
         return redirect()
-            ->route('orders.show', $order)
+            ->route('orders.index')
             ->with('status', 'Order created successfully.');
     }
 

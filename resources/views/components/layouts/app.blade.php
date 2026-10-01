@@ -1,4 +1,4 @@
-@props(['title' => null])
+@props(['title' => null, 'breadcrumbs' => []])
 
 <!DOCTYPE html>
 <html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
@@ -80,14 +80,22 @@
 
                 <main class="flex-1 overflow-auto">
                     <div class="mx-auto max-w-5xl px-6 py-8">
+                        <x-breadcrumbs :items="$breadcrumbs" />
+
                         @session('status')
-                            <div class="mb-4 rounded-md bg-green-50 px-3 py-2 text-sm text-green-700 dark:bg-green-950 dark:text-green-300">
+                            <div
+                                data-toast
+                                class="mb-4 rounded-md bg-green-50 px-3 py-2 text-sm text-green-700 transition-opacity duration-300 dark:bg-green-950 dark:text-green-300"
+                            >
                                 {{ $value }}
                             </div>
                         @endsession
 
                         @session('error')
-                            <div class="mb-4 rounded-md bg-red-50 px-3 py-2 text-sm text-[#f53003] dark:bg-red-950 dark:text-[#FF4433]">
+                            <div
+                                data-toast
+                                class="mb-4 rounded-md bg-red-50 px-3 py-2 text-sm text-[#f53003] transition-opacity duration-300 dark:bg-red-950 dark:text-[#FF4433]"
+                            >
                                 {{ $value }}
                             </div>
                         @endsession
@@ -97,5 +105,35 @@
                 </main>
             </div>
         </div>
+
+        <dialog
+            id="confirm-delete-dialog"
+            class="fixed inset-0 m-auto w-[calc(100%-2rem)] max-w-md rounded-lg border border-[#e3e3e0] bg-white p-0 text-[#1b1b18] shadow-lg backdrop:bg-black/40 dark:border-[#3E3E3A] dark:bg-[#161615] dark:text-[#EDEDEC]"
+        >
+            <form method="dialog" class="flex flex-col gap-4 p-6">
+                <div>
+                    <h2 class="text-lg font-semibold tracking-tight">Confirm delete</h2>
+                    <p id="confirm-delete-message" class="mt-2 text-sm text-[#706f6c] dark:text-[#A1A09A]">
+                        Are you sure you want to delete this?
+                    </p>
+                </div>
+                <div class="flex items-center justify-end gap-3">
+                    <button
+                        type="submit"
+                        value="cancel"
+                        class="rounded-md border border-[#e3e3e0] px-4 py-2 text-sm transition hover:border-[#1b1b18] dark:border-[#3E3E3A] dark:hover:border-[#EDEDEC]"
+                    >
+                        Cancel
+                    </button>
+                    <button
+                        type="submit"
+                        value="confirm"
+                        class="rounded-md bg-[#f53003] px-4 py-2 text-sm font-medium text-white transition hover:bg-[#d42a03] dark:bg-[#FF4433] dark:hover:bg-[#ff5c4d]"
+                    >
+                        Delete
+                    </button>
+                </div>
+            </form>
+        </dialog>
     </body>
 </html>

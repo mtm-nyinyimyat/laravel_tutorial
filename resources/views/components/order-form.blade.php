@@ -14,6 +14,11 @@
         ])->values()->all()
         : []
     ))->values();
+
+    $catalogItems = $items->map(fn ($item) => [
+        'id' => (string) $item->id,
+        'label' => $item->name.' ($'.number_format($item->price, 2).')',
+    ])->values();
 @endphp
 
 <form method="POST" action="{{ $action }}" class="flex max-w-2xl flex-col gap-4" id="order-form">
@@ -47,7 +52,7 @@
                 <button
                     type="button"
                     id="add-order-item"
-                    class="rounded-md border border-[#e3e3e0] px-3 py-1.5 text-sm transition hover:border-[#1b1b18] dark:border-[#3E3E3A] dark:hover:border-[#EDEDEC]"
+                    class="rounded-md border border-[#e3e3e0] px-3 py-1.5 text-sm transition hover:border-[#1b1b18] disabled:cursor-not-allowed disabled:opacity-50 dark:border-[#3E3E3A] dark:hover:border-[#EDEDEC]"
                 >
                     Add Item
                 </button>
@@ -77,7 +82,7 @@
                         <select
                             name="items[{{ $index }}][item_id]"
                             required
-                            class="min-w-0 flex-1 rounded-md border border-[#e3e3e0] bg-white px-3 py-2 text-sm outline-none focus:border-[#1b1b18] dark:border-[#3E3E3A] dark:bg-[#0a0a0a] dark:focus:border-[#EDEDEC]"
+                            class="order-item-select min-w-0 flex-1 rounded-md border border-[#e3e3e0] bg-white px-3 py-2 text-sm outline-none focus:border-[#1b1b18] dark:border-[#3E3E3A] dark:bg-[#0a0a0a] dark:focus:border-[#EDEDEC]"
                         >
                             <option value="">Select item</option>
                             @foreach ($items as $item)
@@ -129,14 +134,9 @@
             <select
                 name="items[__INDEX__][item_id]"
                 required
-                class="min-w-0 flex-1 rounded-md border border-[#e3e3e0] bg-white px-3 py-2 text-sm outline-none focus:border-[#1b1b18] dark:border-[#3E3E3A] dark:bg-[#0a0a0a] dark:focus:border-[#EDEDEC]"
+                class="order-item-select min-w-0 flex-1 rounded-md border border-[#e3e3e0] bg-white px-3 py-2 text-sm outline-none focus:border-[#1b1b18] dark:border-[#3E3E3A] dark:bg-[#0a0a0a] dark:focus:border-[#EDEDEC]"
             >
                 <option value="">Select item</option>
-                @foreach ($items as $item)
-                    <option value="{{ $item->id }}">
-                        {{ $item->name }} (${{ number_format($item->price, 2) }})
-                    </option>
-                @endforeach
             </select>
             <input
                 type="number"
@@ -158,6 +158,7 @@
 
     <script>
         (() => {
+            const catalog = @json($catalogItems);
             const rowsContainer = document.getElementById('order-item-rows');
             const emptyMessage = document.getElementById('order-items-empty');
             const addButton = document.getElementById('add-order-item');
@@ -170,21 +171,62 @@
             let nextIndex = {{ $existingRows->count() }};
 
             const syncEmptyState = () => {
-                if (! emptyMessage) {
-                    return;
+                if (emptyMessage) {
+                    emptyMessage.classList.toggle('hidden', rowsContainer.children.length > 0);
                 }
+            };
 
-                emptyMessage.classList.toggle('hidden', rowsContainer.children.length > 0);
+            const selectedItemIds = () => Array.from(rowsContainer.querySelectorAll('.order-item-select'))
+                .map((select) => select.value)
+                .filter((value) => value !== '');
+
+            const refreshSelectOptions = () => {
+                const selectedIds = selectedItemIds();
+
+                rowsContainer.querySelectorAll('.order-item-select').forEach((select) => {
+                    const currentValue = select.value;
+                    const availableItems = catalog.filter((item) => {
+                        return item.id === currentValue || ! selectedIds.includes(item.id);
+                    });
+
+                    select.innerHTML = '';
+
+                    const placeholder = document.createElement('option');
+                    placeholder.value = '';
+                    placeholder.textContent = 'Select item';
+                    select.appendChild(placeholder);
+
+                    availableItems.forEach((item) => {
+                        const option = document.createElement('option');
+                        option.value = item.id;
+                        option.textContent = item.label;
+                        option.selected = item.id === currentValue;
+                        select.appendChild(option);
+                    });
+                });
+
+                addButton.disabled = selectedIds.length >= catalog.length && rowsContainer.children.length >= catalog.length;
             };
 
             const addRow = () => {
+                if (selectedItemIds().length >= catalog.length && rowsContainer.children.length >= catalog.length) {
+                    return;
+                }
+
                 const html = template.innerHTML.replaceAll('__INDEX__', String(nextIndex));
                 rowsContainer.insertAdjacentHTML('beforeend', html);
                 nextIndex += 1;
                 syncEmptyState();
+                refreshSelectOptions();
             };
 
             addButton.addEventListener('click', addRow);
+
+            rowsContainer.addEventListener('change', (event) => {
+                if (event.target.classList.contains('order-item-select')) {
+                    refreshSelectOptions();
+                }
+            });
 
             rowsContainer.addEventListener('click', (event) => {
                 const removeButton = event.target.closest('.remove-order-item');
@@ -195,9 +237,11 @@
 
                 removeButton.closest('.order-item-row')?.remove();
                 syncEmptyState();
+                refreshSelectOptions();
             });
 
             syncEmptyState();
+            refreshSelectOptions();
         })();
     </script>
 @endif

@@ -1,4 +1,11 @@
-<x-layouts.app :title="$item->name.' — '.config('app.name')">
+<x-layouts.app
+    :title="$item->name.' — '.config('app.name')"
+    :breadcrumbs="[
+        ['label' => 'Dashboard', 'url' => route('dashboard')],
+        ['label' => 'Items', 'url' => route('items.index')],
+        ['label' => $item->name],
+    ]"
+>
     <div class="mb-6 flex items-start justify-between gap-4">
         <div>
             <h1 class="text-2xl font-semibold tracking-tight">{{ $item->name }}</h1>
@@ -13,16 +20,14 @@
             >
                 Edit
             </a>
-            <form method="POST" action="{{ route('items.destroy', $item) }}" onsubmit="return confirm('Delete this item?')">
-                @csrf
-                @method('DELETE')
+            <x-confirm-delete :action="route('items.destroy', $item)" message="Are you sure you want to delete this item?">
                 <button
                     type="submit"
                     class="rounded-md border border-red-200 px-3 py-1.5 text-sm text-[#f53003] transition hover:border-[#f53003] dark:border-red-900 dark:text-[#FF4433]"
                 >
                     Delete
                 </button>
-            </form>
+            </x-confirm-delete>
         </div>
     </div>
 

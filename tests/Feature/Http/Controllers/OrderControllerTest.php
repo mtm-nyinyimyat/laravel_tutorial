@@ -30,7 +30,7 @@ test('authenticated users can create an order with items', function () {
         ->and((float) $order->total)->toBe(25.50)
         ->and($order->orderItems)->toHaveCount(2);
 
-    $response->assertRedirect(route('orders.show', $order));
+    $response->assertRedirect(route('orders.index'));
 });
 
 test('users cannot view another users order', function () {

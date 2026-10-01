@@ -7,18 +7,16 @@
 ])
 
 @php
-    $defaultSelected = $order
-        ? $order->orderItems->mapWithKeys(
-            fn ($orderItem) => [$orderItem->item_id => ['item_id' => $orderItem->item_id, 'quantity' => $orderItem->quantity]]
-        )->all()
-        : [];
-
-    $selectedByItemId = collect(old('items', $defaultSelected))
-        ->filter(fn ($row) => filled($row['item_id'] ?? null))
-        ->keyBy('item_id');
+    $existingRows = collect(old('items', $order
+        ? $order->orderItems->map(fn ($orderItem) => [
+            'item_id' => $orderItem->item_id,
+            'quantity' => $orderItem->quantity,
+        ])->values()->all()
+        : []
+    ))->values();
 @endphp
 
-<form method="POST" action="{{ $action }}" class="flex max-w-2xl flex-col gap-4">
+<form method="POST" action="{{ $action }}" class="flex max-w-2xl flex-col gap-4" id="order-form">
     @csrf
     @if ($method !== 'POST')
         @method($method)
@@ -42,55 +40,75 @@
         @enderror
     </div>
 
-    <div class="flex flex-col gap-2">
-        <p class="text-sm font-medium">Items</p>
+    <div class="flex flex-col gap-3">
+        <div class="flex items-center justify-between gap-3">
+            <p class="text-sm font-medium">Items</p>
+            @if ($items->isNotEmpty())
+                <button
+                    type="button"
+                    id="add-order-item"
+                    class="rounded-md border border-[#e3e3e0] px-3 py-1.5 text-sm transition hover:border-[#1b1b18] dark:border-[#3E3E3A] dark:hover:border-[#EDEDEC]"
+                >
+                    Add Item
+                </button>
+            @endif
+        </div>
+
         @error('items')
             <p class="text-sm text-[#f53003] dark:text-[#FF4433]">{{ $message }}</p>
         @enderror
-
-        @forelse ($items as $index => $item)
-            @php
-                $selected = $selectedByItemId->get($item->id);
-                $isSelected = $selected !== null;
-                $quantity = $isSelected ? (int) ($selected['quantity'] ?? 1) : 0;
-            @endphp
-            <div class="flex items-center gap-3 rounded-md border border-[#e3e3e0] px-3 py-2 dark:border-[#3E3E3A]">
-                <input
-                    type="checkbox"
-                    name="items[{{ $index }}][item_id]"
-                    value="{{ $item->id }}"
-                    id="item-{{ $item->id }}"
-                    @checked($isSelected)
-                    class="rounded border-[#e3e3e0] dark:border-[#3E3E3A]"
-                    onchange="const qty = this.closest('div').querySelector('input[type=number]'); qty.disabled = !this.checked; qty.value = this.checked ? Math.max(1, Number(qty.value) || 1) : 0;"
-                >
-                <label for="item-{{ $item->id }}" class="flex-1 text-sm">
-                    {{ $item->name }}
-                    <span class="text-[#706f6c] dark:text-[#A1A09A]">(${{ number_format($item->price, 2) }})</span>
-                </label>
-                <input
-                    type="number"
-                    name="items[{{ $index }}][quantity]"
-                    min="0"
-                    value="{{ $isSelected ? max(1, $quantity) : 0 }}"
-                    @disabled(! $isSelected)
-                    class="w-20 rounded-md border border-[#e3e3e0] bg-white px-2 py-1 text-sm outline-none focus:border-[#1b1b18] disabled:opacity-50 dark:border-[#3E3E3A] dark:bg-[#0a0a0a]"
-                >
-            </div>
-        @empty
-            <p class="text-sm text-[#706f6c] dark:text-[#A1A09A]">
-                No items available.
-                <a href="{{ route('items.create') }}" class="underline underline-offset-4">Create an item</a>
-                first.
-            </p>
-        @endforelse
-
         @error('items.*.item_id')
             <p class="text-sm text-[#f53003] dark:text-[#FF4433]">{{ $message }}</p>
         @enderror
         @error('items.*.quantity')
             <p class="text-sm text-[#f53003] dark:text-[#FF4433]">{{ $message }}</p>
         @enderror
+
+        @if ($items->isEmpty())
+            <p class="text-sm text-[#706f6c] dark:text-[#A1A09A]">
+                No items available.
+                <a href="{{ route('items.create') }}" class="underline underline-offset-4">Create an item</a>
+                first.
+            </p>
+        @else
+            <div id="order-item-rows" class="flex flex-col gap-2">
+                @foreach ($existingRows as $index => $row)
+                    <div class="order-item-row flex items-center gap-3 rounded-md border border-[#e3e3e0] px-3 py-2 dark:border-[#3E3E3A]" data-index="{{ $index }}">
+                        <select
+                            name="items[{{ $index }}][item_id]"
+                            required
+                            class="min-w-0 flex-1 rounded-md border border-[#e3e3e0] bg-white px-3 py-2 text-sm outline-none focus:border-[#1b1b18] dark:border-[#3E3E3A] dark:bg-[#0a0a0a] dark:focus:border-[#EDEDEC]"
+                        >
+                            <option value="">Select item</option>
+                            @foreach ($items as $item)
+                                <option value="{{ $item->id }}" @selected((string) ($row['item_id'] ?? '') === (string) $item->id)>
+                                    {{ $item->name }} (${{ number_format($item->price, 2) }})
+                                </option>
+                            @endforeach
+                        </select>
+                        <input
+                            type="number"
+                            name="items[{{ $index }}][quantity]"
+                            min="1"
+                            value="{{ max(1, (int) ($row['quantity'] ?? 1)) }}"
+                            required
+                            class="w-24 rounded-md border border-[#e3e3e0] bg-white px-2 py-2 text-sm outline-none focus:border-[#1b1b18] dark:border-[#3E3E3A] dark:bg-[#0a0a0a]"
+                            aria-label="Quantity"
+                        >
+                        <button
+                            type="button"
+                            class="remove-order-item rounded-md border border-[#e3e3e0] px-3 py-2 text-sm text-[#706f6c] transition hover:border-[#f53003] hover:text-[#f53003] dark:border-[#3E3E3A] dark:text-[#A1A09A] dark:hover:border-[#FF4433] dark:hover:text-[#FF4433]"
+                        >
+                            Remove
+                        </button>
+                    </div>
+                @endforeach
+            </div>
+
+            <p id="order-items-empty" class="text-sm text-[#706f6c] dark:text-[#A1A09A] {{ $existingRows->isNotEmpty() ? 'hidden' : '' }}">
+                Click Add Item to include products in this order.
+            </p>
+        @endif
     </div>
 
     <div class="flex items-center gap-3 pt-2">
@@ -104,3 +122,82 @@
         {{ $slot }}
     </div>
 </form>
+
+@if ($items->isNotEmpty())
+    <template id="order-item-row-template">
+        <div class="order-item-row flex items-center gap-3 rounded-md border border-[#e3e3e0] px-3 py-2 dark:border-[#3E3E3A]">
+            <select
+                name="items[__INDEX__][item_id]"
+                required
+                class="min-w-0 flex-1 rounded-md border border-[#e3e3e0] bg-white px-3 py-2 text-sm outline-none focus:border-[#1b1b18] dark:border-[#3E3E3A] dark:bg-[#0a0a0a] dark:focus:border-[#EDEDEC]"
+            >
+                <option value="">Select item</option>
+                @foreach ($items as $item)
+                    <option value="{{ $item->id }}">
+                        {{ $item->name }} (${{ number_format($item->price, 2) }})
+                    </option>
+                @endforeach
+            </select>
+            <input
+                type="number"
+                name="items[__INDEX__][quantity]"
+                min="1"
+                value="1"
+                required
+                class="w-24 rounded-md border border-[#e3e3e0] bg-white px-2 py-2 text-sm outline-none focus:border-[#1b1b18] dark:border-[#3E3E3A] dark:bg-[#0a0a0a]"
+                aria-label="Quantity"
+            >
+            <button
+                type="button"
+                class="remove-order-item rounded-md border border-[#e3e3e0] px-3 py-2 text-sm text-[#706f6c] transition hover:border-[#f53003] hover:text-[#f53003] dark:border-[#3E3E3A] dark:text-[#A1A09A] dark:hover:border-[#FF4433] dark:hover:text-[#FF4433]"
+            >
+                Remove
+            </button>
+        </div>
+    </template>
+
+    <script>
+        (() => {
+            const rowsContainer = document.getElementById('order-item-rows');
+            const emptyMessage = document.getElementById('order-items-empty');
+            const addButton = document.getElementById('add-order-item');
+            const template = document.getElementById('order-item-row-template');
+
+            if (! rowsContainer || ! addButton || ! template) {
+                return;
+            }
+
+            let nextIndex = {{ $existingRows->count() }};
+
+            const syncEmptyState = () => {
+                if (! emptyMessage) {
+                    return;
+                }
+
+                emptyMessage.classList.toggle('hidden', rowsContainer.children.length > 0);
+            };
+
+            const addRow = () => {
+                const html = template.innerHTML.replaceAll('__INDEX__', String(nextIndex));
+                rowsContainer.insertAdjacentHTML('beforeend', html);
+                nextIndex += 1;
+                syncEmptyState();
+            };
+
+            addButton.addEventListener('click', addRow);
+
+            rowsContainer.addEventListener('click', (event) => {
+                const removeButton = event.target.closest('.remove-order-item');
+
+                if (! removeButton) {
+                    return;
+                }
+
+                removeButton.closest('.order-item-row')?.remove();
+                syncEmptyState();
+            });
+
+            syncEmptyState();
+        })();
+    </script>
+@endif

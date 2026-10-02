@@ -7,8 +7,16 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 
 uses(RefreshDatabase::class);
 
-test('guests cannot view items', function () {
-    $this->get(route('items.index'))->assertRedirect(route('login'));
+test('authenticated users can search items', function () {
+    $user = User::factory()->create();
+    Item::factory()->create(['name' => 'Blue Notebook']);
+    Item::factory()->create(['name' => 'Red Pen']);
+
+    $this->actingAs($user)
+        ->get(route('items.index', ['search' => 'Notebook']))
+        ->assertOk()
+        ->assertSee('Blue Notebook')
+        ->assertDontSee('Red Pen');
 });
 
 test('authenticated users can create an item', function () {

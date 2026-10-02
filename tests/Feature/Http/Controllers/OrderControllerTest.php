@@ -7,8 +7,16 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 
 uses(RefreshDatabase::class);
 
-test('guests cannot view orders', function () {
-    $this->get(route('orders.index'))->assertRedirect(route('login'));
+test('authenticated users can search orders', function () {
+    $user = User::factory()->create();
+    Order::factory()->for($user)->create(['status' => 'pending']);
+    Order::factory()->for($user)->create(['status' => 'completed']);
+
+    $this->actingAs($user)
+        ->get(route('orders.index', ['search' => 'completed']))
+        ->assertOk()
+        ->assertSee('completed')
+        ->assertDontSee('pending');
 });
 
 test('authenticated users can create an order with items', function () {

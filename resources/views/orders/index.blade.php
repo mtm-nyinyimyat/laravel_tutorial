@@ -5,7 +5,7 @@
         ['label' => 'Orders'],
     ]"
 >
-    <div class="mb-6 flex items-center justify-between gap-4">
+    <div class="mb-6 flex flex-wrap items-center justify-between gap-4">
         <div>
             <h1 class="text-2xl font-semibold tracking-tight">Orders</h1>
             <p class="mt-1 text-sm text-[#706f6c] dark:text-[#A1A09A]">Your orders and their line items.</p>
@@ -17,6 +17,10 @@
             <x-icons.plus />
             New order
         </a>
+    </div>
+
+    <div class="mb-4">
+        <x-search-form :action="route('orders.index')" placeholder="Search orders by ID, status, or item name..." />
     </div>
 
     <div class="overflow-hidden rounded-lg border border-[#e3e3e0] dark:border-[#3E3E3A]">

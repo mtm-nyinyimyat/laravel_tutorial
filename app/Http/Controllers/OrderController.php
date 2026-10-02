@@ -19,15 +19,28 @@ class OrderController extends Controller
      */
     public function index(Request $request): View
     {
+        $search = $request->string('search')->trim()->toString();
+
         $orders = Order::query()
             ->whereBelongsTo($request->user())
             ->with(['orderItems.item'])
             ->withCount('orderItems')
+            ->when($search !== '', function ($query) use ($search): void {
+                $query->where(function ($query) use ($search): void {
+                    $query->where('status', 'like', "%{$search}%")
+                        ->orWhere('id', $search)
+                        ->orWhereHas('items', function ($query) use ($search): void {
+                            $query->where('name', 'like', "%{$search}%");
+                        });
+                });
+            })
             ->latest()
-            ->paginate(10);
+            ->paginate(10)
+            ->withQueryString();
 
         return view('orders.index', [
             'orders' => $orders,
+            'search' => $search,
         ]);
     }
 
